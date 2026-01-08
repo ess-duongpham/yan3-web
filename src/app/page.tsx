@@ -36,6 +36,31 @@ function LoadingScreen({ progress }: { progress: number }) {
   const [shatterEffect, setShatterEffect] = useState(false);
   const [mirrorCrack, setMirrorCrack] = useState(false);
 
+  // Word-by-word reveal for quotes
+  const [visibleWords, setVisibleWords] = useState<number[]>([]);
+  const [quoteKey, setQuoteKey] = useState(0);
+
+  // Get current quote words
+  const currentQuoteWords = QUOTES[currentQuote].split(" ");
+
+  // Randomly reveal words one by one
+  useEffect(() => {
+    setVisibleWords([]);
+    const wordCount = currentQuoteWords.length;
+    const indices = Array.from({ length: wordCount }, (_, i) => i);
+
+    // Shuffle indices for random order appearance
+    const shuffledIndices = indices.sort(() => Math.random() - 0.5);
+
+    const timers = shuffledIndices.map((wordIndex, order) =>
+      setTimeout(() => {
+        setVisibleWords(prev => [...prev, wordIndex]);
+      }, 150 + order * 120) // Each word appears with random timing
+    );
+
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [quoteKey, currentQuote]);
+
   useEffect(() => {
     // Glitch effect - more intense for psychological horror
     const glitchInterval = setInterval(() => {
@@ -81,6 +106,7 @@ function LoadingScreen({ progress }: { progress: number }) {
     // Cycle through quotes
     const quoteInterval = setInterval(() => {
       setCurrentQuote((prev) => (prev + 1) % QUOTES.length);
+      setQuoteKey(prev => prev + 1);
     }, 4000);
 
     return () => {
@@ -289,29 +315,30 @@ function LoadingScreen({ progress }: { progress: number }) {
           <div style={{ position: "absolute", bottom: -1, right: -1, width: "20px", height: "20px", borderBottom: "2px solid #8b0000", borderRight: "2px solid #8b0000" }} />
         </div>
 
-        {/* Chinese title with glitch - authentic to the game */}
+        {/* Main title with glitch effect */}
         <div
           style={{
             position: "relative",
-            marginBottom: "4px",
+            marginBottom: "8px",
           }}
         >
           <h1
             style={{
-              fontFamily: "'Noto Serif SC', 'Crimson Text', Georgia, serif",
-              fontSize: "clamp(1.8rem, 6vw, 3rem)",
+              fontFamily: "'Crimson Text', Georgia, serif",
+              fontSize: "clamp(2rem, 8vw, 4rem)",
               fontWeight: 700,
               color: "#8b0000",
               textShadow: glitchText
                 ? "3px 0 #00ffff, -3px 0 #ff00ff, 0 0 30px rgba(139,0,0,1)"
                 : "0 0 20px rgba(139, 0, 0, 0.8), 0 0 40px rgba(139, 0, 0, 0.4), 0 0 60px rgba(139, 0, 0, 0.2)",
               margin: 0,
-              letterSpacing: "0.15em",
+              letterSpacing: "0.2em",
               transform: glitchText ? `skewX(${Math.random() * 4 - 2}deg) translateX(${Math.random() * 4 - 2}px)` : "none",
               transition: "transform 0.05s",
+              animation: "textGlow 3s ease-in-out infinite",
             }}
           >
-            病嬌3
+            YANDERE 3
           </h1>
           {/* Glitch duplicate layers */}
           {glitchText && (
@@ -322,18 +349,18 @@ function LoadingScreen({ progress }: { progress: number }) {
                   top: 0,
                   left: 0,
                   right: 0,
-                  fontFamily: "'Noto Serif SC', 'Crimson Text', Georgia, serif",
-                  fontSize: "clamp(1.8rem, 6vw, 3rem)",
+                  fontFamily: "'Crimson Text', Georgia, serif",
+                  fontSize: "clamp(2rem, 8vw, 4rem)",
                   fontWeight: 700,
                   color: "#00ffff",
                   opacity: 0.7,
                   margin: 0,
-                  letterSpacing: "0.15em",
+                  letterSpacing: "0.2em",
                   transform: "translateX(-3px)",
                   clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 45%)",
                 }}
               >
-                病嬌3
+                YANDERE 3
               </h1>
               <h1
                 style={{
@@ -341,37 +368,22 @@ function LoadingScreen({ progress }: { progress: number }) {
                   top: 0,
                   left: 0,
                   right: 0,
-                  fontFamily: "'Noto Serif SC', 'Crimson Text', Georgia, serif",
-                  fontSize: "clamp(1.8rem, 6vw, 3rem)",
+                  fontFamily: "'Crimson Text', Georgia, serif",
+                  fontSize: "clamp(2rem, 8vw, 4rem)",
                   fontWeight: 700,
                   color: "#ff00ff",
                   opacity: 0.7,
                   margin: 0,
-                  letterSpacing: "0.15em",
+                  letterSpacing: "0.2em",
                   transform: "translateX(3px)",
                   clipPath: "polygon(0 55%, 100% 55%, 100% 100%, 0 100%)",
                 }}
               >
-                病嬌3
+                YANDERE 3
               </h1>
             </>
           )}
         </div>
-
-        {/* English title */}
-        <h2
-          style={{
-            fontFamily: "'Crimson Text', Georgia, serif",
-            fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
-            fontWeight: 400,
-            color: "#666",
-            margin: "0 0 8px 0",
-            letterSpacing: "0.2em",
-            animation: "textGlow 3s ease-in-out infinite",
-          }}
-        >
-          YANDERE 3
-        </h2>
 
         {/* Subtitle */}
         <h3
@@ -497,14 +509,14 @@ function LoadingScreen({ progress }: { progress: number }) {
           </p>
         </div>
 
-        {/* Rotating quotes from the game */}
+        {/* Rotating quotes with word-by-word random reveal */}
         <div
           style={{
             position: "absolute",
             bottom: "-80px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "300px",
+            width: "320px",
             maxWidth: "85vw",
           }}
         >
@@ -517,10 +529,24 @@ function LoadingScreen({ progress }: { progress: number }) {
               fontStyle: "italic",
               textAlign: "center",
               lineHeight: 1.6,
-              animation: "quoteChange 4s ease-in-out infinite",
             }}
           >
-            「 {QUOTES[currentQuote]} 」
+            「{" "}
+            {currentQuoteWords.map((word, index) => (
+              <span
+                key={`${quoteKey}-${index}`}
+                style={{
+                  opacity: visibleWords.includes(index) ? 1 : 0,
+                  transform: visibleWords.includes(index) ? "translateY(0)" : "translateY(8px)",
+                  transition: "opacity 0.3s ease-out, transform 0.3s ease-out",
+                  display: "inline-block",
+                  marginRight: "0.25em",
+                }}
+              >
+                {word}
+              </span>
+            ))}
+            {" "}」
           </p>
         </div>
       </div>
@@ -747,20 +773,20 @@ export default function Home() {
 
         setLoadingProgress(85);
 
-        // Longer delay for dramatic effect
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Short delay for smooth transition
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         setLoadingProgress(95);
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         setLoadingProgress(100);
 
-        // Fade out loading screen with longer delay
+        // Fade out loading screen
         setTimeout(() => {
           setScriptsReady(true);
           setIsLoading(false);
-        }, 800);
+        }, 400);
       } catch (error) {
         console.error("Failed to load scripts:", error);
         console.error("Failed to load AR libraries");
