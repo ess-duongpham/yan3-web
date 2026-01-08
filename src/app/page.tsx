@@ -14,9 +14,6 @@ declare global {
   }
 }
 
-// Days of the week - representing Xiao He's 7 split personalities
-const DAYS_OF_WEEK = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"];
-
 // Quotes from Yandere 3 - translated to Vietnamese
 const QUOTES = [
   "Cuộc sống của chúng ta như những cuốn sách phủ đầy bụi trên kệ, nhạt nhẽo đến không gợn sóng",
@@ -31,7 +28,6 @@ function LoadingScreen({ progress }: { progress: number }) {
   const [glitchText, setGlitchText] = useState(false);
   const [heartbeat, setHeartbeat] = useState(false);
   const [flickerOpacity, setFlickerOpacity] = useState(1);
-  const [activePersonality, setActivePersonality] = useState(0);
   const [currentQuote, setCurrentQuote] = useState(0);
   const [shatterEffect, setShatterEffect] = useState(false);
   const [mirrorCrack, setMirrorCrack] = useState(false);
@@ -55,65 +51,64 @@ function LoadingScreen({ progress }: { progress: number }) {
     const timers = shuffledIndices.map((wordIndex, order) =>
       setTimeout(() => {
         setVisibleWords(prev => [...prev, wordIndex]);
-      }, 150 + order * 120) // Each word appears with random timing
+      }, 80 + order * 60) // Faster word appearance
     );
 
     return () => timers.forEach(t => clearTimeout(t));
   }, [quoteKey, currentQuote]);
 
   useEffect(() => {
-    // Glitch effect - more intense for psychological horror
+    // Glitch effect - faster and more frequent
     const glitchInterval = setInterval(() => {
       setGlitchText(true);
-      setTimeout(() => setGlitchText(false), 150);
+      setTimeout(() => setGlitchText(false), 100);
       // Sometimes trigger shatter
       if (Math.random() > 0.5) {
         setShatterEffect(true);
-        setTimeout(() => setShatterEffect(false), 300);
+        setTimeout(() => setShatterEffect(false), 200);
       }
-    }, 2500);
+    }, 1500);
 
-    // Heartbeat effect - double beat like real heartbeat
+    // Heartbeat effect - faster double beat
     const heartbeatInterval = setInterval(() => {
       setHeartbeat(true);
-      setTimeout(() => setHeartbeat(false), 150);
+      setTimeout(() => setHeartbeat(false), 100);
       setTimeout(() => {
         setHeartbeat(true);
-        setTimeout(() => setHeartbeat(false), 150);
-      }, 250);
-    }, 1800);
+        setTimeout(() => setHeartbeat(false), 100);
+      }, 180);
+    }, 1200);
 
-    // Random flicker effect - like broken light
+    // Random flicker effect - faster
     const flickerInterval = setInterval(() => {
       if (Math.random() > 0.6) {
         const flickers = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < flickers; i++) {
           setTimeout(() => {
             setFlickerOpacity(0.3 + Math.random() * 0.4);
-            setTimeout(() => setFlickerOpacity(1), 30 + Math.random() * 50);
-          }, i * 80);
+            setTimeout(() => setFlickerOpacity(1), 20 + Math.random() * 30);
+          }, i * 50);
         }
       }
-    }, 400);
+    }, 300);
 
-    // Cycle through personalities (days of week)
-    const personalityInterval = setInterval(() => {
-      setActivePersonality((prev) => (prev + 1) % 7);
+    // Mirror crack effect
+    const crackInterval = setInterval(() => {
       setMirrorCrack(true);
-      setTimeout(() => setMirrorCrack(false), 500);
-    }, 1500);
+      setTimeout(() => setMirrorCrack(false), 300);
+    }, 1200);
 
-    // Cycle through quotes
+    // Cycle through quotes - faster
     const quoteInterval = setInterval(() => {
       setCurrentQuote((prev) => (prev + 1) % QUOTES.length);
       setQuoteKey(prev => prev + 1);
-    }, 4000);
+    }, 2500);
 
     return () => {
       clearInterval(glitchInterval);
       clearInterval(heartbeatInterval);
       clearInterval(flickerInterval);
-      clearInterval(personalityInterval);
+      clearInterval(crackInterval);
       clearInterval(quoteInterval);
     };
   }, []);
@@ -235,58 +230,10 @@ function LoadingScreen({ progress }: { progress: number }) {
             transparent 20%,
             rgba(20, 0, 0, 0.4) 50%,
             rgba(0, 0, 0, 0.9) 100%)`,
-          animation: "vignettePulse 3s ease-in-out infinite",
+          animation: "vignettePulse 1.5s ease-in-out infinite",
         }}
       />
 
-      {/* Split personality indicator - 7 segments for 7 personalities */}
-      <div
-        style={{
-          position: "absolute",
-          top: "15%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "8px",
-        }}
-      >
-        {DAYS_OF_WEEK.map((day, i) => (
-          <div
-            key={day}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              opacity: activePersonality === i ? 1 : 0.2,
-              transform: activePersonality === i ? "scale(1.2)" : "scale(1)",
-              transition: "all 0.3s ease-out",
-            }}
-          >
-            <div
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: activePersonality === i ? "#cc0000" : "#333",
-                boxShadow: activePersonality === i ? "0 0 15px #ff0000, 0 0 30px #8b0000" : "none",
-                transition: "all 0.3s",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "0.55rem",
-                color: activePersonality === i ? "#cc0000" : "#333",
-                marginTop: "4px",
-                fontFamily: "'Crimson Text', Georgia, serif",
-                letterSpacing: "0.05em",
-                transition: "color 0.3s",
-              }}
-            >
-              {day}
-            </span>
-          </div>
-        ))}
-      </div>
 
       {/* Main content container with heartbeat */}
       <div
@@ -335,7 +282,7 @@ function LoadingScreen({ progress }: { progress: number }) {
               letterSpacing: "0.2em",
               transform: glitchText ? `skewX(${Math.random() * 4 - 2}deg) translateX(${Math.random() * 4 - 2}px)` : "none",
               transition: "transform 0.05s",
-              animation: "textGlow 3s ease-in-out infinite",
+              animation: "textGlow 1.5s ease-in-out infinite",
             }}
           >
             YANDERE 3
@@ -395,40 +342,11 @@ function LoadingScreen({ progress }: { progress: number }) {
             margin: "0 0 30px 0",
             letterSpacing: "0.15em",
             fontStyle: "italic",
-            animation: "fadeInOut 4s ease-in-out infinite",
+            animation: "fadeInOut 2s ease-in-out infinite",
           }}
         >
           Chúng Ta Gần Như Bình Thường
         </h3>
-
-        {/* Seven personalities visual */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "12px",
-            marginBottom: "35px",
-          }}
-        >
-          {[...Array(7)].map((_, i) => (
-            <div
-              key={`soul-${i}`}
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: i === activePersonality
-                  ? "radial-gradient(circle, #ff3333, #8b0000)"
-                  : "rgba(139, 0, 0, 0.2)",
-                boxShadow: i === activePersonality
-                  ? "0 0 10px #ff0000, 0 0 20px #8b0000, 0 0 30px rgba(139,0,0,0.5)"
-                  : "none",
-                transform: i === activePersonality ? "scale(1.5)" : "scale(1)",
-                transition: "all 0.3s ease-out",
-              }}
-            />
-          ))}
-        </div>
 
         {/* Loading bar */}
         <div
@@ -454,7 +372,7 @@ function LoadingScreen({ progress }: { progress: number }) {
                 position: "absolute",
                 inset: 0,
                 background: "linear-gradient(90deg, transparent, rgba(139, 0, 0, 0.2), transparent)",
-                animation: "shimmer 2s infinite",
+                animation: "shimmer 1s infinite",
               }}
             />
             {/* Progress fill */}
@@ -480,7 +398,7 @@ function LoadingScreen({ progress }: { progress: number }) {
                   background: "radial-gradient(circle, #ff4444, #cc0000)",
                   borderRadius: "50%",
                   boxShadow: "0 0 8px #ff0000, 0 0 16px #ff0000",
-                  animation: "glowPulse 0.8s ease-in-out infinite",
+                  animation: "glowPulse 0.5s ease-in-out infinite",
                 }}
               />
             </div>
@@ -494,7 +412,7 @@ function LoadingScreen({ progress }: { progress: number }) {
               color: "#555",
               marginTop: "15px",
               letterSpacing: "0.08em",
-              animation: "textPulse 1.5s ease-in-out infinite",
+              animation: "textPulse 0.8s ease-in-out infinite",
             }}
           >
             {progress < 25
@@ -561,7 +479,7 @@ function LoadingScreen({ progress }: { progress: number }) {
           height: "1px",
           background: "linear-gradient(90deg, transparent 10%, rgba(139, 0, 0, 0.6) 50%, transparent 90%)",
           boxShadow: "0 0 15px rgba(139, 0, 0, 0.5), 0 2px 10px rgba(139, 0, 0, 0.3)",
-          animation: "scanLine 4s linear infinite",
+          animation: "scanLine 2s linear infinite",
         }}
       />
 
@@ -575,7 +493,7 @@ function LoadingScreen({ progress }: { progress: number }) {
           height: "1px",
           background: "linear-gradient(90deg, transparent 10%, rgba(139, 0, 0, 0.4) 50%, transparent 90%)",
           boxShadow: "0 0 10px rgba(139, 0, 0, 0.3)",
-          animation: "scanLineReverse 5s linear infinite",
+          animation: "scanLineReverse 2.5s linear infinite",
         }}
       />
 
@@ -662,11 +580,6 @@ function LoadingScreen({ progress }: { progress: number }) {
         @keyframes textPulse {
           0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
-        }
-
-        @keyframes quoteChange {
-          0%, 90%, 100% { opacity: 1; }
-          95% { opacity: 0; }
         }
 
         @keyframes scanLine {
@@ -773,12 +686,12 @@ export default function Home() {
 
         setLoadingProgress(85);
 
-        // Short delay for smooth transition
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        // Delay for smooth transition
+        await new Promise((resolve) => setTimeout(resolve, 1200));
 
         setLoadingProgress(95);
 
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         setLoadingProgress(100);
 
@@ -786,7 +699,7 @@ export default function Home() {
         setTimeout(() => {
           setScriptsReady(true);
           setIsLoading(false);
-        }, 400);
+        }, 600);
       } catch (error) {
         console.error("Failed to load scripts:", error);
         console.error("Failed to load AR libraries");
