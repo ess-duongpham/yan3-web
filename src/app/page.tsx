@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const VIDEO_URL =
-  "https://res.cloudinary.com/dw3l2zv8i/video/upload/v1736500724/yandere_3_video_r3nh8r.mp4";
-const TARGETS_URL =
-  "https://res.cloudinary.com/dw3l2zv8i/raw/upload/v1736501889/targets_u25uwa.mind";
+const VIDEO_URL = "/video.mp4";
+const TARGETS_URL = "/targets.mind";
 
 declare global {
   interface Window {
