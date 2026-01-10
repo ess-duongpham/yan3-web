@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 const VIDEO_URL =
-  "https://res.cloudinary.com/dw3l2zv8i/video/upload/v1766573361/Yan_3_vid_kvg71i.mp4";
+  "https://res.cloudinary.com/dw3l2zv8i/video/upload/v1736500724/yandere_3_video_r3nh8r.mp4";
 const TARGETS_URL =
-  "https://res.cloudinary.com/dw3l2zv8i/raw/upload/v1766657251/targets_zk9tjc.mind";
+  "https://res.cloudinary.com/dw3l2zv8i/raw/upload/v1736501889/targets_u25uwa.mind";
 
 declare global {
   interface Window {
@@ -23,6 +23,12 @@ const QUOTES = [
   "Chúng ta gần như bình thường... nhưng không hoàn toàn",
 ];
 
+// Generate stable random values for particles (seeded by index)
+function seededRandom(seed: number) {
+  const x = Math.sin(seed * 9999) * 10000;
+  return x - Math.floor(x);
+}
+
 // Loading screen component with Yandere 3 theme - Split Personality / Psychological Horror
 function LoadingScreen({ progress }: { progress: number }) {
   const [glitchText, setGlitchText] = useState(false);
@@ -31,10 +37,16 @@ function LoadingScreen({ progress }: { progress: number }) {
   const [currentQuote, setCurrentQuote] = useState(0);
   const [shatterEffect, setShatterEffect] = useState(false);
   const [mirrorCrack, setMirrorCrack] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Word-by-word reveal for quotes
   const [visibleWords, setVisibleWords] = useState<number[]>([]);
   const [quoteKey, setQuoteKey] = useState(0);
+
+  // Mark as mounted on client
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Get current quote words
   const currentQuoteWords = QUOTES[currentQuote].split(" ");
@@ -147,35 +159,35 @@ function LoadingScreen({ progress }: { progress: number }) {
       />
 
       {/* Rain/water droplet effect - like condensation on glass */}
-      {[...Array(50)].map((_, i) => (
+      {isMounted && [...Array(50)].map((_, i) => (
         <div
           key={`rain-${i}`}
           style={{
             position: "absolute",
-            left: `${Math.random() * 100}%`,
-            top: `-${Math.random() * 20}%`,
+            left: `${seededRandom(i) * 100}%`,
+            top: `-${seededRandom(i + 100) * 20}%`,
             width: "1px",
-            height: `${20 + Math.random() * 60}px`,
-            background: `linear-gradient(to bottom, transparent, rgba(139, 0, 0, ${0.1 + Math.random() * 0.2}), transparent)`,
-            animation: `rain ${2 + Math.random() * 3}s linear infinite`,
-            animationDelay: `-${Math.random() * 3}s`,
+            height: `${20 + seededRandom(i + 200) * 60}px`,
+            background: `linear-gradient(to bottom, transparent, rgba(139, 0, 0, ${0.1 + seededRandom(i + 300) * 0.2}), transparent)`,
+            animation: `rain ${2 + seededRandom(i + 400) * 3}s linear infinite`,
+            animationDelay: `-${seededRandom(i + 500) * 3}s`,
           }}
         />
       ))}
 
       {/* Shattered mirror fragments */}
-      {shatterEffect && [...Array(12)].map((_, i) => (
+      {isMounted && shatterEffect && [...Array(12)].map((_, i) => (
         <div
           key={`shard-${i}`}
           style={{
             position: "absolute",
             left: "50%",
             top: "50%",
-            width: `${10 + Math.random() * 30}px`,
-            height: `${10 + Math.random() * 30}px`,
-            background: `linear-gradient(${Math.random() * 360}deg, rgba(139,0,0,0.3), transparent)`,
+            width: `${10 + seededRandom(i + 600) * 30}px`,
+            height: `${10 + seededRandom(i + 700) * 30}px`,
+            background: `linear-gradient(${seededRandom(i + 800) * 360}deg, rgba(139,0,0,0.3), transparent)`,
             clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-            transform: `translate(-50%, -50%) rotate(${Math.random() * 360}deg) translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`,
+            transform: `translate(-50%, -50%) rotate(${seededRandom(i + 900) * 360}deg) translate(${seededRandom(i + 1000) * 100 - 50}px, ${seededRandom(i + 1100) * 100 - 50}px)`,
             animation: "shardExplode 0.5s ease-out forwards",
             opacity: 0.8,
           }}
@@ -202,20 +214,20 @@ function LoadingScreen({ progress }: { progress: number }) {
       ))}
 
       {/* Floating dust particles - like dusty books */}
-      {[...Array(40)].map((_, i) => (
+      {isMounted && [...Array(40)].map((_, i) => (
         <div
           key={`dust-${i}`}
           style={{
             position: "absolute",
-            width: `${1 + Math.random() * 3}px`,
-            height: `${1 + Math.random() * 3}px`,
-            background: `rgba(${100 + Math.random() * 55}, ${Math.random() * 20}, ${Math.random() * 20}, ${0.2 + Math.random() * 0.4})`,
+            width: `${1 + seededRandom(i + 1200) * 3}px`,
+            height: `${1 + seededRandom(i + 1300) * 3}px`,
+            background: `rgba(${100 + seededRandom(i + 1400) * 55}, ${seededRandom(i + 1500) * 20}, ${seededRandom(i + 1600) * 20}, ${0.2 + seededRandom(i + 1700) * 0.4})`,
             borderRadius: "50%",
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `dustFloat ${8 + Math.random() * 12}s ease-in-out infinite`,
-            animationDelay: `-${Math.random() * 8}s`,
-            boxShadow: `0 0 ${3 + Math.random() * 5}px rgba(139, 0, 0, 0.3)`,
+            left: `${seededRandom(i + 1800) * 100}%`,
+            top: `${seededRandom(i + 1900) * 100}%`,
+            animation: `dustFloat ${8 + seededRandom(i + 2000) * 12}s ease-in-out infinite`,
+            animationDelay: `-${seededRandom(i + 2100) * 8}s`,
+            boxShadow: `0 0 ${3 + seededRandom(i + 2200) * 5}px rgba(139, 0, 0, 0.3)`,
           }}
         />
       ))}
@@ -751,7 +763,7 @@ export default function Home() {
               object-fit: cover !important;
               transform: ${mirrorTransform} !important;
             }
-            #ar-container video {
+            #ar-container video:not(#ar-video) {
               position: absolute !important;
               top: 0 !important;
               left: 0 !important;
@@ -759,6 +771,9 @@ export default function Home() {
               height: 100% !important;
               object-fit: cover !important;
               transform: ${mirrorTransform} !important;
+            }
+            #ar-video {
+              transform: none !important;
             }
           </style>
           <div id="ar-container">
@@ -781,7 +796,6 @@ export default function Home() {
                 crossorigin="anonymous"
                 playsinline
                 webkit-playsinline
-                muted
               ></video>
             </a-assets>
 
