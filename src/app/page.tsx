@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const VIDEO_URL = "/video.mp4";
+const VIDEO_URL = "https://drive.google.com/uc?export=download&id=1eg6INpH8aAr_3fpdEmZogckhWoDU7N6p";
 const TARGETS_URL = "/targets.mind";
 
 declare global {
