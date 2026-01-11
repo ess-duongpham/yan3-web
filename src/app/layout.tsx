@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Yandere 3 AR Experience",
   description: "Interactive AR experience with MindAR",
+  icons: {
+    icon: "/target.jpg",
+    shortcut: "/target.jpg",
+    apple: "/target.jpg",
+  },
 };
 
 export default function RootLayout({

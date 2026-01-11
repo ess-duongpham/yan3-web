@@ -623,6 +623,37 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isMuted, setIsMuted] = useState(true);
+  const [showUnmuteButton, setShowUnmuteButton] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const audioUnlockedRef = useRef(false);
+
+  // Unlock audio on first user interaction (required by browsers)
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioUnlocked) return;
+
+      // Play silent audio to unlock the audio context
+      const silentAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+9DEAAAIAANIAAAAgAAA0gAAABBERERERERERERERERERERERERERERERERERERERERERERERERERERERE//tQxBkAAADSAAAAAAAAANIAAAAARERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE");
+      silentAudio.play().then(() => {
+        setAudioUnlocked(true);
+        audioUnlockedRef.current = true;
+        console.log("Audio unlocked!");
+      }).catch(() => {});
+
+      // Remove listeners after first interaction
+      document.removeEventListener("touchstart", unlockAudio);
+      document.removeEventListener("click", unlockAudio);
+    };
+
+    document.addEventListener("touchstart", unlockAudio, { once: true });
+    document.addEventListener("click", unlockAudio, { once: true });
+
+    return () => {
+      document.removeEventListener("touchstart", unlockAudio);
+      document.removeEventListener("click", unlockAudio);
+    };
+  }, [audioUnlocked]);
 
   // Detect if user is on mobile device
   useEffect(() => {
@@ -776,7 +807,7 @@ export default function Home() {
           </style>
           <div id="ar-container">
           <a-scene
-            mindar-image="imageTargetSrc: ${TARGETS_URL}; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001;"
+            mindar-image="imageTargetSrc: ${TARGETS_URL}; autoStart: true; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; ${isMobile ? 'facingMode: environment;' : ''}"
             color-space="sRGB"
             renderer="colorManagement: true, antialias: true, alpha: true"
             vr-mode-ui="enabled: false"
@@ -794,6 +825,7 @@ export default function Home() {
                 crossorigin="anonymous"
                 playsinline
                 webkit-playsinline
+                muted
               ></video>
             </a-assets>
 
@@ -807,6 +839,7 @@ export default function Home() {
                 width="1.2"
                 height="1.8"
                 opacity="1"
+                scale="${isMobile ? '1 1 1' : '-1 1 1'}"
               ></a-video>
             </a-entity>
           </a-scene>
@@ -881,6 +914,14 @@ export default function Home() {
           resizeCanvas();
         });
 
+        // Handle camera errors
+        scene.addEventListener("arError", (e: any) => {
+          console.error("AR Error:", e);
+          if (mounted) {
+            setStatus("Không thể truy cập camera. Vui lòng cấp quyền camera và tải lại trang.");
+          }
+        });
+
         // Resize on window resize
         window.addEventListener("resize", resizeCanvas);
 
@@ -910,6 +951,15 @@ export default function Home() {
             if (mounted) {
               console.log("Target found!");
               if (arVideo) {
+                // If audio was unlocked by previous user interaction, auto-unmute (YouTube behavior)
+                if (audioUnlockedRef.current) {
+                  arVideo.muted = false;
+                  setIsMuted(false);
+                  console.log("Auto-unmuted (audio was unlocked by user interaction)");
+                } else {
+                  // Audio not unlocked yet - show unmute button as fallback
+                  setShowUnmuteButton(true);
+                }
                 arVideo
                   .play()
                   .catch((e) => console.log("Video play error:", e));
@@ -920,6 +970,7 @@ export default function Home() {
           target.addEventListener("targetLost", () => {
             if (mounted) {
               console.log("Target lost");
+              setShowUnmuteButton(false);
               if (arVideo) {
                 arVideo.pause();
                 arVideo.currentTime = 0;
@@ -1024,6 +1075,109 @@ export default function Home() {
           >
             {status}
           </div>
+        )}
+
+        {/* Unmute button - shows when video is playing */}
+        {showUnmuteButton && isMuted && (
+          <button
+            onClick={() => {
+              // Play silent audio first to unlock Safari audio
+              const silentAudio = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+9DEAAAIAANIAAAAgAAA0gAAABBERERERERERERERERERERERERERERERERERERERERERERERERERERERE//tQxBkAAADSAAAAAAAAANIAAAAARERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERE");
+              silentAudio.play().catch(() => {});
+
+              const arVideo = document.getElementById("ar-video") as HTMLVideoElement;
+              if (arVideo) {
+                arVideo.muted = false;
+                arVideo.play().catch((e) => console.log("Play after unmute error:", e));
+                setIsMuted(false);
+              }
+            }}
+            style={{
+              position: "fixed",
+              bottom: "40px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              padding: "0",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              zIndex: 10000,
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              {/* Animated sound icon */}
+              <div
+                style={{
+                  width: "70px",
+                  height: "70px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(80, 0, 0, 0.95) 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 30px rgba(139, 0, 0, 0.6), 0 0 60px rgba(139, 0, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1)",
+                  border: "2px solid rgba(255, 255, 255, 0.2)",
+                  animation: "pulseButton 2s ease-in-out infinite",
+                }}
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="white" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" style={{ animation: "soundWave1 1s ease-in-out infinite" }} />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" style={{ animation: "soundWave2 1s ease-in-out infinite 0.2s" }} />
+                </svg>
+              </div>
+              {/* Text label */}
+              <span
+                style={{
+                  color: "white",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  textShadow: "0 2px 10px rgba(0, 0, 0, 0.8)",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Chạm để bật âm thanh
+              </span>
+            </div>
+            <style>{`
+              @keyframes pulseButton {
+                0%, 100% {
+                  transform: scale(1);
+                  box-shadow: 0 0 30px rgba(139, 0, 0, 0.6), 0 0 60px rgba(139, 0, 0, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+                }
+                50% {
+                  transform: scale(1.05);
+                  box-shadow: 0 0 40px rgba(139, 0, 0, 0.8), 0 0 80px rgba(139, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.15);
+                }
+              }
+              @keyframes soundWave1 {
+                0%, 100% { opacity: 0.5; }
+                50% { opacity: 1; }
+              }
+              @keyframes soundWave2 {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.8; }
+              }
+            `}</style>
+          </button>
         )}
       </div>
     </>
